@@ -22,6 +22,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+
       - name: Install dependencies    
         run: npm ci
 
@@ -34,36 +35,57 @@ jobs:
       - name: Build
         run: rpm run build --if-present
 
+  preparetag:
+      name: Prepare release tag
+      needs: lint-test
+      runs-on: ubuntu-latest
+      outputs:
+        sha_output: ${{ steps.short_sha_generator.outputs.SHORT_SHA }}
+      steps:
+        - name: Check out code
+          uses: actions/checkout@v3
+        - name: Get short SHA
+          id: short_sha_generator
+          run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
   tag-image:
-    needs: lint-test
+    name: Build image & push to Docker
+    needs: preparetag
     runs-on: ubuntu-latest
     steps:
-      - uses: actions-ecosystem/action-release-label@v1
-        id: release-label
-        if: ${{ github.event.pull_request.merged == true }}
-
-      - uses: actions-ecosystem/action-get-latest-tag@v1
-        id: get-latest-tag
-        if: ${{ steps.release-label.outputs.level != null }}
-
-      - uses: actions-ecosystem/action-bump-semver@v1
-        id: bump-semver
-        if: ${{ steps.release-label.outputs.level != null }}
-        with:
-          current_version: ${{ steps.get-latest-tag.outputs.tag }}
-          level: ${{ steps.release-label.outputs.level }}
-
-      - uses: actions-ecosystem/action-push-tag@v1
-        if: ${{ steps.release-label.outputs.level != null }}
-        with:
-          tag: ${{ steps.bump-semver.outputs.new_version }}
-          message: '${{ steps.bump-semver.outputs.new_version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
-
+      - name: Check out code
+        uses: actions/checkout@v3
       - name: Build and push Docker image
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
-          image: astb01/place-app-demo
-          tags: latest, ${{ steps.get-latest-tag.outputs.tag }}-SNAPSHOT
+          image: astb01/hello-world-app
+          tags: latest, ${{ needs.preparetag.outputs.sha_output }}
           registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+  
+  deploy:
+    name: Deploy to server
+    needs: tag-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Development Code'
+        uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - run: npm install
+      - run: echo "window['appConfig']={version:'${{ needs.preparetag.outputs.sha_output }}'}" > public/app-config.js
+      - run: npm run build --if-present
+      
+      - name: Deploy to PROD (Heroku)
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          heroku_app_name: 'hello-world-app-dev'
+          branch: main
