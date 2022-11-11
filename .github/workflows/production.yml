@@ -35,7 +35,7 @@ jobs:
         run: npm test -- --coverage
 
       - name: Build
-        run: rpm run build --if-present
+        run: npm run build --if-present
 
   preparetag:
       name: Prepare release tag
