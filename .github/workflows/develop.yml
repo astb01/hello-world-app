@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   lint-test:
-    name: Lint and Test
+    name: Lint, Test & Coverage
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -54,9 +54,12 @@ jobs:
           run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
   tag-image:
+    name: Build image & push to Docker
     needs: preparetag
     runs-on: ubuntu-latest
     steps:
+      - name: Check out code
+        uses: actions/checkout@v3
       - name: Build and push Docker image
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
