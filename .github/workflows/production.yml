@@ -51,18 +51,6 @@ jobs:
           with:
             args: --severity-threshold=critical
 
-  build:
-    name: Build artifact
-    needs: [lint-test, security-checks]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Install dependencies    
-        run: npm ci
-      - name: Build
-        run: npm run build --if-present
-
   bump_version:
     name: Bump version
     runs-on: ubuntu-latest
@@ -116,7 +104,7 @@ jobs:
   
   deploy_app_to_dev:
     name: Deploy to PROD
-    needs: push_to_docker
+    needs: [push_to_docker, bump_version, get_commit_sha]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
