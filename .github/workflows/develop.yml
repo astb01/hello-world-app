@@ -40,8 +40,8 @@ jobs:
       - name: install Snyk CLI
         run: npm install -g snyk
 
-      - name: Auth
-        run: SNYK_TOKEN=${{ secrets.SNYK_TOKEN }} synk auth
+      - name: Echo var
+        run: echo ${{ secrets.HELLO_VAR }}
 
       - name: run Snyk Open Source Test
         run: snyk test
