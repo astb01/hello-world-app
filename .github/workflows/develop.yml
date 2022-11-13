@@ -119,7 +119,7 @@ jobs:
 
   deploy_app_to_dev:
     name: Deploy to DEV
-    needs: push_to_docker
+    needs: [push_to_docker, bump_version, get_commit_sha]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
