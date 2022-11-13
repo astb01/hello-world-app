@@ -37,6 +37,18 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 
+      - name: install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Auth
+        run: SNYK_TOKEN=${{ secrets.SNYK_TOKEN }} synk auth
+
+      - name: run Snyk Open Source Test
+        run: snyk test
+
+      - name: run Snyk Code Test
+        run: snyk code test
+
   security-checks:
     name: Run security checks
     needs: lint-test
