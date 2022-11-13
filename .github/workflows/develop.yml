@@ -62,6 +62,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
           DRY_RUN: true
+          PRERELEASE_SUFFIX: ''
+          RELEASE_BRANCHES: 'main'
+          DEFAULT_BUMP: patch
 
       - name: echo new tag
         run: |
@@ -105,7 +108,7 @@ jobs:
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
           image: astb01/hello-world-app
-          tags: latest, ${{ needs.get_commit_sha.outputs.sha_output }}-SNAPSHOT, ${{ needs.bump-version.outputs.current_tag }}-SNAPSHOT
+          tags: latest, ${{ needs.get_commit_sha.outputs.sha_output }}-SNAPSHOT, ${{ needs.taggerBumper.outputs.new_tag }}-SNAPSHOT
           registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
