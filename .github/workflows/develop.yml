@@ -78,6 +78,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
+          PRERELEASE_SUFFIX: ''
+          RELEASE_BRANCHES: 'main'
+          DEFAULT_BUMP: patch
 
   get_commit_sha:
       name: Get SHA
