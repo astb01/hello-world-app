@@ -64,7 +64,7 @@ jobs:
           RELEASE_BRANCHES: 'main'
           DEFAULT_BUMP: patch
           PRERELEASE_SUFFIX: ''
-          PRERELEASE: true
+          PRERELEASE: false
 
   get_commit_sha:
       name: Get SHA
