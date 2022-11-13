@@ -41,7 +41,7 @@ jobs:
         run: npm install -g snyk
 
       - name: Echo var
-        run: echo ${{ secrets.HELLO_VAR }}
+        run: echo ${{ env.HELLO_VAR }}
 
       - name: run Snyk Open Source Test
         run: snyk test
