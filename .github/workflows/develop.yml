@@ -46,6 +46,7 @@ jobs:
     name: Bump version
     runs-on: ubuntu-latest
     needs: lint-test
+    permissions: write-all
     outputs:
       current_tag: ${{ steps.taggerDryRun.outputs.tag }}
     steps:
