@@ -119,9 +119,16 @@ jobs:
     needs: push_to_docker
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Install dependencies    
+        run: npm ci
+      - name: Build
+        run: npm run build --if-present
       - name: Deploy to PROD
         uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           heroku_app_name: 'hello-world-app-prod'
+          branch: main
