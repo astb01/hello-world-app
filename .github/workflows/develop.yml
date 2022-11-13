@@ -57,10 +57,10 @@ jobs:
         run: npm install -g snyk
 
       - name: run Snyk Open Source Test
-        run: snyk test
+        run: synk auth ${{secrets.SNYK_TOKEN}} && snyk test
 
       - name: run Snyk Code Test
-        run: snyk code test
+        run: synk auth ${{secrets.SNYK_TOKEN}} && snyk code test
 
   build:
     name: Build artifact
@@ -75,7 +75,7 @@ jobs:
   bump_version:
     name: Bump version
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: build
     permissions: write-all
     outputs:
       new_tag: ${{ steps.taggerBumper.outputs.new_tag }}
@@ -96,7 +96,7 @@ jobs:
         
   get_commit_sha:
       name: Get SHA
-      needs: lint-test
+      needs: build
       runs-on: ubuntu-latest
       outputs:
         sha_output: ${{ steps.short_sha_generator.outputs.SHORT_SHA }}
