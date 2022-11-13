@@ -56,7 +56,11 @@ jobs:
       - name: install Snyk CLI
         run: npm install -g snyk
 
-      - name: run Snyk Open Source Test
+      - name: Check SNYK_TOKEN
+        run: |
+          echo "Token => ${{secrets.SNYK_TOKEN}}"
+
+      - name: Run Snyk Open Source Test
         run: synk auth ${{secrets.SNYK_TOKEN}} && snyk test
 
       - name: run Snyk Code Test
