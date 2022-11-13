@@ -36,18 +36,35 @@ jobs:
       - name: Run Tests
         run: npm test -- --coverage
 
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}   
+  security-checks:
+      name: Run security checks
+      needs: lint-test
+      runs-on: ubuntu-latest
+      environment: development
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v3
+        - name: Run Snyk to check for vulnerabilities
+          uses: snyk/actions/node@master
+          env:
+            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          with:
+            args: --severity-threshold=critical
 
+  build:
+    name: Build artifact
+    needs: [lint-test, security-checks]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
       - name: Build
         run: npm run build --if-present
 
   bump_version:
     name: Bump version
     runs-on: ubuntu-latest
-    needs: lint-test
+    needs: build
     permissions: write-all
     outputs:
       new_tag: ${{ steps.taggerBumper.outputs.new_tag }}
@@ -68,7 +85,7 @@ jobs:
 
   get_commit_sha:
       name: Prepare release tag
-      needs: lint-test
+      needs: build
       runs-on: ubuntu-latest
       outputs:
         sha_output: ${{ steps.short_sha_generator.outputs.SHORT_SHA }}
@@ -79,32 +96,30 @@ jobs:
           id: short_sha_generator
           run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-  tag-image:
-    name: Push to Docker & Deploy
+  push_to_docker:
+    name: Push image to docker
     needs: [bump_version, get_commit_sha]
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-      
-      - run: npm install
-      - run: echo "window['appConfig']={version:'${{ needs.preparetag.outputs.sha_output }}'}" > public/app-config.js
-      - run: npm run build --if-present
-
       - name: Build and push Docker image
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
           image: astb01/hello-world-app
-          tags: latest, ${{ needs.get_commit_sha.outputs.sha_output }}, ${{ needs.bump_version.outputs.new_tag }}
+          tags: latest, ${{ needs.get_commit_sha.outputs.sha_output }}-RELEASE, ${{ needs.bump_version.outputs.new_tag }}-RELEASE
           registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      
-      - name: Deploy to PROD (Heroku)
+  
+  deploy_app_to_dev:
+    name: Deploy to PROD
+    needs: push_to_docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to PROD
         uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           heroku_app_name: 'hello-world-app-prod'
-          branch: main
-  
