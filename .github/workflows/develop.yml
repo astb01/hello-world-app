@@ -47,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint-test
     permissions: write-all
+    outputs:
+      new_tag: ${{ steps.bump_version.outputs.NEW_TAG }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -63,6 +65,8 @@ jobs:
           DEFAULT_BUMP: patch
           PRERELEASE_SUFFIX: ''
           PRERELEASE: true
+      - name: Obtain new tag
+        run: echo "NEW_TAG=${{ steps.taggerBumper.outputs.new_tag }}" >> $GITHUB_OUTPUT
 
   get_commit_sha:
       name: Get SHA
