@@ -44,6 +44,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Check vars
+        env:
+          TEST: ${{ secrets.SYNK_TOKEN }}
+        run: |
+          echo ${#TEST}
+          
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
         env:
