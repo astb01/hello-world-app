@@ -37,24 +37,11 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 
-      - name: install Snyk CLI
-        run: npm install -g snyk
-
-      - name: Echo var
-        run: echo ${{ env.HELLO_VAR }}
-
-      - name: run Snyk Open Source Test
-        env: 
-          TOKEN: ${{ secrets.SYNK_TOKEN }}
-        run: SYNK_TOKEN=${#TOKEN} synk auth && snyk test
-
-      - name: run Snyk Code Test
-        run: snyk code test
-
   security-checks:
     name: Run security checks
     needs: lint-test
     runs-on: ubuntu-latest
+    environment: development
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
