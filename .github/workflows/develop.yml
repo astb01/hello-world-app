@@ -42,7 +42,7 @@ jobs:
 
       - name: Check SNYK_TOKEN
         run: |
-          echo "Token: ${{secrets.SNYK_TOKEN}}"
+          echo "Token: ${{ secrets.SNYK_TOKEN }}"
 
       - name: run Snyk Open Source Test
         run: snyk test
